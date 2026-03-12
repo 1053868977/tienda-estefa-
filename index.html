@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Tienda Online</title>
+<style>
+* { box-sizing: border-box; margin:0; padding:0; font-family: 'Arial', sans-serif; }
+
+body {
+  background: #f5f6fa;
+  padding: 20px;
+  color: #333;
+}
+
+h1 {
+  text-align:center;
+  margin-bottom: 25px;
+  color: #2f3640;
+}
+
+.container {
+  display:flex;
+  gap:20px;
+  flex-wrap: wrap;
+}
+
+.productos {
+  flex:3;
+  display:grid;
+  grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+  gap:20px;
+}
+
+.producto {
+  background:white;
+  border-radius:10px;
+  padding:15px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  text-align:center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.producto:hover {
+  transform: translateY(-5px);
+  box-shadow:0 8px 20px rgba(0,0,0,0.12);
+}
+
+.producto img {
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  border-radius:8px;
+  margin-bottom:10px;
+}
+
+.producto h3 {
+  margin-bottom:5px;
+  color:#2f3640;
+}
+
+.producto p {
+  color:#27ae60;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+button {
+  padding:7px 12px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  transition: background 0.2s;
+}
+
+.btn-agregar {
+  background:#0984e3;
+  color:white;
+  width:100%;
+}
+
+.btn-agregar:hover {
+  background:#74b9ff;
+}
+
+.carrito {
+  flex:1;
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  height: fit-content;
+  max-height: 600px;
+  display:flex;
+  flex-direction: column;
+}
+
+.carrito h2 {
+  margin-bottom:15px;
+  color:#2f3640;
+}
+
+#carrito-items {
+  flex:1;
+  overflow-y:auto;
+  padding-right:5px;
+}
+
+.carrito-item {
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  background:#f1f2f6;
+  border-radius:8px;
+  padding:8px 10px;
+  margin-bottom:8px;
+}
+
+.controles button {
+  margin:0 3px;
+  padding:3px 6px;
+  border-radius:4px;
+  border:none;
+  cursor:pointer;
+}
+
+.controles span {
+  padding:2px 6px;
+  border:1px solid #ccc;
+  border-radius:4px;
+  background:#fff;
+  min-width:20px;
+  text-align:center;
+  display:inline-block;
+}
+
+.btn-eliminar {
+  background:#e84118;
+  color:white;
+}
+
+.btn-eliminar:hover {
+  background:#c23616;
+}
+
+.total {
+  margin-top:10px;
+  font-weight:bold;
+  font-size:18px;
+  background:#dff9fb;
+  padding:8px;
+  border-radius:6px;
+  text-align:right;
+  color:#0984e3;
+}
+
+.btn-pagar {
+  width:100%;
+  margin-top:10px;
+  background:#00b894;
+  color:white;
+  font-size:16px;
+  padding:10px 0;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.btn-pagar:hover {
+  background:#00a36c;
+}
+
+select {
+  width:100%;
+  padding:7px;
+  margin-top:5px;
+  border-radius:5px;
+  margin-bottom:10px;
+}
+
+#overlay {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.5);
+  display:none;
+  z-index:999;
+}
+
+#factura {
+  position: fixed;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+  width:90%;
+  max-width:600px;
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.25);
+  color:#2f3640;
+  display:none;
+  z-index:1000;
+}
+
+#factura table {
+  border-collapse: collapse;
+  width:100%;
+  margin-top:10px;
+}
+
+#factura th, #factura td {
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:left;
+}
+
+#factura th {
+  background:#f1f2f6;
+}
+
+#factura h2 {
+  text-align:center;
+  margin-bottom:10px;
+  color:#00b894;
+}
+
+#factura h3 {
+  text-align:right;
+  margin-top:10px;
+  color:#00b894;
+}
+</style>
+</head>
+<body>
+
+<h1>🛍️ Tienda Estefa </h1>
+
+<div class="container">
+  <div class="productos" id="lista-productos"></div>
+
+  <div class="carrito">
+    <h2>Carrito</h2>
+    <div id="carrito-items">
+      <p>El carrito está vacío</p>
+    </div>
+
+    <p class="total">
+      Total: $ <span id="total">0</span>
+    </p>
+
+    <h3>Método de pago</h3>
+    <select id="metodoPago">
+      <option value="Tarjeta">Tarjeta</option>
+      <option value="Nequi">Nequi</option>
+      <option value="Daviplata">Daviplata</option>
+      <option value="PSE">PSE</option>
+      <option value="Efectivo">Efectivo</option>
+    </select>
+
+    <button class="btn-pagar" onclick="pagar()">Pagar</button>
+  </div>
+</div>
+
+<div id="overlay"></div>
+<div id="factura"></div>
+
+<script>
+const productos = [
+  { id: 1, nombre: "Camisa", precio: 50000, imagen: "imagenes/camisa.jpeg" },
+  { id: 2, nombre: "Pantalón", precio: 80000, imagen: "imagenes/pantalon.jpeg" },
+  { id: 3, nombre: "Zapatos", precio: 120000, imagen: "imagenes/Zapato.jpeg" }
+];
+
+let carrito = [];
+
+function cargarProductos() {
+  const contenedor = document.getElementById("lista-productos");
+  productos.forEach(prod => {
+    const div = document.createElement("div");
+    div.classList.add("producto");
+    div.innerHTML = `
+      <img src="${prod.imagen}">
+      <h3>${prod.nombre}</h3>
+      <p>$${prod.precio}</p>
+      <button class="btn-agregar" onclick="agregarAlCarrito(${prod.id})">Agregar</button>
+    `;
+    contenedor.appendChild(div);
+  });
+}
+
+function agregarAlCarrito(id) {
+  const producto = productos.find(p => p.id === id);
+  const item = carrito.find(i => i.id === id);
+  if(item) item.cantidad++;
+  else carrito.push({ id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1 });
+  renderizarCarrito();
+}
+
+function aumentarCantidad(id) {
+  const item = carrito.find(i => i.id === id);
+  if(item){ item.cantidad++; renderizarCarrito(); }
+}
+function disminuirCantidad(id) {
+  const item = carrito.find(i => i.id === id);
+  if(item){
+    item.cantidad--;
+    if(item.cantidad<=0) carrito = carrito.filter(i=>i.id!==id);
+    renderizarCarrito();
+  }
+}
+
+function eliminar(id){
+  carrito = carrito.filter(i=>i.id!==id);
+  renderizarCarrito();
+}
+
+function calcularTotal(){
+  return carrito.reduce((total,item)=>total + (item.precio*item.cantidad),0);
+}
+
+function renderizarCarrito(){
+  const contenedor = document.getElementById("carrito-items");
+  contenedor.innerHTML="";
+  if(carrito.length===0) contenedor.innerHTML="<p>El carrito está vacío</p>";
+  carrito.forEach(item=>{
+    const div = document.createElement("div");
+    div.classList.add("carrito-item");
+    div.innerHTML = `
+      <span>${item.nombre}</span>
+      <div class="controles">
+        <button onclick="disminuirCantidad(${item.id})">-</button>
+        <span>${item.cantidad}</span>
+        <button onclick="aumentarCantidad(${item.id})">+</button>
+        <button class="btn-eliminar" onclick="eliminar(${item.id})">X</button>
+      </div>
+    `;
+    contenedor.appendChild(div);
+  });
+  document.getElementById("total").textContent = calcularTotal();
+}
+
+function pagar(){
+  if(carrito.length===0){ alert("El carrito está vacío"); return; }
+  const metodo = document.getElementById("metodoPago").value;
+  const numeroFactura = Math.floor(Math.random()*100000);
+  const fecha = new Date().toLocaleString();
+
+  let detalle="";
+  carrito.forEach(item=>{
+    detalle += `<tr>
+      <td>${item.nombre}</td>
+      <td>${item.cantidad}</td>
+      <td>$${item.precio}</td>
+      <td>$${item.precio*item.cantidad}</td>
+    </tr>`;
+  });
+
+  const total = calcularTotal();
+
+  const facturaHTML = `
+    <h2>Factura de compra</h2>
+    <p><b>Factura #:</b> ${numeroFactura}</p>
+    <p><b>Fecha:</b> ${fecha}</p>
+    <p><b>Método de pago:</b> ${metodo}</p>
+    <table>
+      <tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>
+      ${detalle}
+    </table>
+    <h3>Total: $${total}</h3>
+  `;
+
+  const contenedorFactura = document.getElementById("factura");
+  contenedorFactura.innerHTML = facturaHTML;
+  contenedorFactura.style.display="block";
+  document.getElementById("overlay").style.display="block";
+
+  carrito=[];
+  renderizarCarrito();
+}
+
+document.getElementById("overlay").onclick = function(){
+  document.getElementById("factura").style.display="none";
+  this.style.display="none";
+}
+
+cargarProductos();
+</script>
+
+</body>
+</html>
